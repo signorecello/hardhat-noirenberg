@@ -1,14 +1,13 @@
-import * as crypto from "crypto";
-import { promises as fs } from "fs";
-import { glob } from "glob";
-import * as path from "path";
-
 export async function getFileHash(filePath: string): Promise<string> {
-  const fileContent = await fs.readFile(filePath);
-  return crypto.createHash("sha256").update(fileContent).digest("hex");
+  const fs = await import("fs/promises");
+  const fileContent = await fs.readFile(filePath, "utf-8");
+  return sha256(fileContent);
 }
 
 export async function getHashOfNoirWorkspace(baseDir: string) {
+  const { glob } = await import("glob");
+  const path = await import("path");
+
   const filePatterns = ["**/*.nr", "**/Nargo.toml"];
   const files = await Promise.all(
     filePatterns.map((pattern) => glob(pattern, { cwd: baseDir })),
@@ -23,5 +22,10 @@ export async function getHashOfNoirWorkspace(baseDir: string) {
     fileHashes.push(hash);
   }
 
-  return crypto.createHash("sha256").update(fileHashes.join("")).digest("hex");
+  return sha256(fileHashes.join(""));
+}
+
+export async function sha256(data: string) {
+  const crypto = await import("crypto");
+  return crypto.createHash("sha256").update(data).digest("hex");
 }

@@ -2,15 +2,13 @@ import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
 import { task } from "hardhat/config";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatConfig } from "hardhat/types";
-import type { z } from "zod";
+import { NoirCache } from "./cache";
 import { installBb, installNargo } from "./install";
 import { getTarget } from "./Noir";
 import { makeRunCommand, PLUGIN_NAME } from "./utils";
 
 task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
   async (_, { config }, runSuper) => {
-    const { readFile, writeFile } = await import("fs/promises");
-    const fs = await import("fs");
     const path = await import("path");
     const noirDir = config.paths.noir;
     const targetDir = await getTarget(noirDir);
@@ -23,50 +21,17 @@ task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
     await checkNargoWorkspace(config);
     await addGitIgnore(noirDir);
 
-    const { z } = await import("zod");
-    type NoirCache = z.infer<typeof NoirCache>;
-    const NoirCache = z.object({
-      sourceFiles: z.string().nullable(),
-      jsonFiles: z.record(z.string(), z.string()),
-    });
-    // TODO: i could not make it work. But should be using io-ts because hardhat already uses it and zod is a very heavy lib
-    // type NoirCache = t.TypeOf<typeof NoirCache>;
-    // const NoirCache = t.type({
-    //   sourceFiles: t.union([t.string, t.null]),
-    //   jsonFiles: t.record(t.string, t.string),
-    // });
-    function emptyCache(): NoirCache {
-      return {
-        sourceFiles: null,
-        jsonFiles: {},
-      };
-    }
-
-    // if any of .nr files or any Nargo.toml file is not changed, then skip compilation
-    const { getHashOfNoirWorkspace, getFileHash } = await import("./hash");
-    const cacheFile = path.join(targetDir, ".noir-hardhat-cache"); // to store the hash
-    // TODO: persist cache on each write
-    let cache: NoirCache;
-    try {
-      cache = fs.existsSync(cacheFile)
-        ? NoirCache.parse(JSON.parse(await readFile(cacheFile, "utf-8")))
-        : emptyCache();
-    } catch (error) {
-      cache = emptyCache();
-    }
-
-    const currentHash = await getHashOfNoirWorkspace(noirDir);
-    if (cache.sourceFiles !== currentHash) {
+    const cache = await NoirCache.fromConfig(config);
+    if (await cache.haveSourceFilesChanged()) {
       await runCommand(`${nargoBinary} compile`);
-      cache.sourceFiles = currentHash;
+      await cache.saveSourceFilesHash();
     }
 
     const glob = await import("glob");
     const jsonFiles = glob.sync(`${targetDir}/*.json`);
     await Promise.all(
       jsonFiles.map(async (file) => {
-        const jsonHash = await getFileHash(file);
-        if (jsonHash === cache?.jsonFiles[file]) {
+        if (!(await cache.hasJsonFileChanged(file))) {
           return;
         }
 
@@ -77,12 +42,9 @@ task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
         await runCommand(
           `${bbBinary} contract -k ${targetDir}/${name}_vk -o ${targetDir}/${name}.sol`,
         );
-        cache.jsonFiles[file] = jsonHash;
+        await cache.saveJsonFileHash(file);
       }),
     );
-
-    fs.mkdirSync(targetDir, { recursive: true });
-    await writeFile(cacheFile, JSON.stringify(cache));
 
     await runSuper(); // Run the default Hardhat compile
   },
