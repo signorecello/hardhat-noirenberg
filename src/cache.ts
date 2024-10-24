@@ -18,7 +18,7 @@ export class NoirCache {
 
     const cacheFile = path.join(targetDir, CACHE_FILENAME); // to store the cache
     if (!fs.existsSync(cacheFile)) {
-      return this.empty(config);
+      return await this.empty(config);
     }
     let cacheJson: CacheSchema;
     try {
@@ -26,22 +26,20 @@ export class NoirCache {
         JSON.parse(await fs.promises.readFile(cacheFile, "utf-8")),
       );
     } catch (error) {
-      return this.empty(config);
+      return await this.empty(config);
     }
 
-    const toolingVersions = await sha256(
-      [config.noir.version, config.noir.bbVersion].join(),
-    );
+    const toolingVersions = await getToolingHash(config);
     if (cacheJson.toolingVersions !== toolingVersions) {
-      return this.empty(config);
+      return await this.empty(config);
     }
     return new NoirCache(cacheJson, config.paths.noir);
   }
 
-  static empty(config: HardhatConfig) {
+  static async empty(config: HardhatConfig) {
     return new NoirCache(
       {
-        toolingVersions: "",
+        toolingVersions: await getToolingHash(config),
         sourceFiles: "",
         jsonFiles: {},
       },
@@ -81,6 +79,10 @@ export class NoirCache {
       JSON.stringify(this.cache),
     );
   }
+}
+
+async function getToolingHash(config: HardhatConfig) {
+  return await sha256([config.noir.version, config.noir.bbVersion].join());
 }
 
 // TODO: i could not make it work. But should be using io-ts because hardhat already uses it and zod is a very heavy lib
