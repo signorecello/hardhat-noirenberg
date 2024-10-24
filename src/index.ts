@@ -48,17 +48,15 @@ extendConfig(
         "0.33.0": "0.47.1",
         "0.34.0": "0.55.0",
         "0.35.0": "0.57.0",
+        "0.36.0": "0.58.0",
       };
-      const latestNoirVersion = Object.keys(bbVersionMap).sort().reverse()[0];
       u = u || {};
-      const version = u.version || latestNoirVersion;
+      const version = u.version;
       const bbVersion = bbVersionMap[version];
       if (!bbVersion) {
         throw new HardhatPluginError(
           PLUGIN_NAME,
-          new Error(
-            `cannot infer bb version for noir@${version}. Please specify \`noir.bbVersion\` in Hardhat config`,
-          ),
+          `cannot infer bb version for noir@${version}. Please specify \`noir.bbVersion\` in Hardhat config`,
         );
       }
       return {

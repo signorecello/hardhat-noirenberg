@@ -30,6 +30,8 @@ Or if you are using TypeScript, in your `hardhat.config.ts`:
 import "hardhat-plugin-noir";
 ```
 
+Specify the Noir version in your Hardhat config:
+
 **You must enable Solidity optimizer in order to be able to deploy Solidity verifier contracts.**
 
 ```js
@@ -43,6 +45,9 @@ const config: HardhatUserConfig = {
       },
     },
   },
+  noir: {
+    version: "0.36.0",
+  }
 };
 ```
 
@@ -146,9 +151,9 @@ Configure Noir and Barretenberg (bb) versions in `hardhat.config.ts`:
 export default {
   noir: {
     // Noir version, optional, will use the latest known Noir version by default
-    version: "0.35.0",
+    version: "0.36.0",
     // bb version, optional, will be inferred if possible
-    bbVersion: "0.57.0",
+    bbVersion: "0.58.0",
   },
 };
 ```
