@@ -22,7 +22,7 @@
     "test": "mocha --exit --recursive 'test/**/*.test.ts'",
     "build": "rm -rf dist && tsc",
     "watch": "tsc -w",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "pnpm test && pnpm build"
   },
   "files": [
     "dist/src/",

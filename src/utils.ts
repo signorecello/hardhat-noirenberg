@@ -6,7 +6,13 @@ export const makeRunCommand = (cwd?: string) => async (command: string) => {
   const execAsync = promisify(exec);
   // TODO(security): escape command arguments (use template strings)
   try {
-    return await execAsync(command, { cwd });
+    const { stdout, stderr } = await execAsync(command, { cwd });
+    if (stdout) {
+      console.log(stdout);
+    }
+    if (stderr) {
+      console.error(stderr);
+    }
   } catch (error) {
     console.error(`Error executing command: ${command}`);
     console.error((error as any).stderr || (error as any).message); // Log only error messages

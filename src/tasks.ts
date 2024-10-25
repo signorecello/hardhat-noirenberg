@@ -27,8 +27,11 @@ task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
 
     const cache = await NoirCache.fromConfig(config);
     if (await cache.haveSourceFilesChanged()) {
+      console.log("Compiling Noir circuits...");
+      const runCommand = makeRunCommand(config.paths.noir);
       await runCommand(`${nargoBinary} compile`);
       await cache.saveSourceFilesHash();
+      console.log("Compiled Noir circuits");
     }
 
     const glob = await import("glob");
@@ -40,6 +43,7 @@ task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
         }
 
         const name = path.basename(file, ".json");
+        console.log(`Generating Solidity verifier for ${name}...`);
         await runCommand(
           `${bbBinary} write_vk -b ${targetDir}/${name}.json -o ${targetDir}/${name}_vk`,
         );
@@ -47,6 +51,7 @@ task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
           `${bbBinary} contract -k ${targetDir}/${name}_vk -o ${targetDir}/${name}.sol`,
         );
         await cache.saveJsonFileHash(file);
+        console.log(`Generated Solidity verifier for ${name}`);
       }),
     );
 
