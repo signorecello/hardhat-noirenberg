@@ -2,7 +2,7 @@ import type { BarretenbergBackend } from "@noir-lang/backend_barretenberg";
 import type { CompiledCircuit, Noir } from "@noir-lang/noir_js";
 import type { Backend } from "@noir-lang/types";
 import { HardhatPluginError } from "hardhat/plugins";
-import type { HardhatRuntimeEnvironment } from "hardhat/types";
+import type { HardhatConfig, HardhatRuntimeEnvironment } from "hardhat/types";
 import { PLUGIN_NAME } from "./utils";
 
 export class NoirExtension {
@@ -60,7 +60,8 @@ export class NoirExtension {
   }
 }
 
-export async function getTarget(noirDir: string) {
+export async function getTarget(noirDir: string | HardhatConfig) {
+  noirDir = typeof noirDir === "string" ? noirDir : noirDir.paths.noir;
   const path = await import("path");
   return path.join(noirDir, "target");
 }

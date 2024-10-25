@@ -54,6 +54,20 @@ describe("Integration tests examples", function () {
       );
     });
   });
+
+  describe("no extra solidity contracts", function () {
+    useEnvironment("no-extra-contracts");
+
+    it("deploys a verifier directly", async function () {
+      await this.hre.run("compile");
+
+      const contractFactory =
+        await this.hre.ethers.getContractFactory("UltraVerifier");
+      const contract = await contractFactory.deploy();
+      await contract.waitForDeployment();
+      console.log("verifier", await contract.getAddress());
+    });
+  });
 });
 
 // describe("Unit tests examples", function () {

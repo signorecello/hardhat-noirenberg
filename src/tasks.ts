@@ -1,4 +1,8 @@
-import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import {
+  TASK_CLEAN,
+  TASK_COMPILE,
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+} from "hardhat/builtin-tasks/task-names";
 import { task } from "hardhat/config";
 import { HardhatPluginError } from "hardhat/plugins";
 import { HardhatConfig } from "hardhat/types";
@@ -81,6 +85,20 @@ task("noir-new", "Create a new Noir package")
       `${nargoBinary} new ${args.name} ${args.lib ? "--lib" : ""}`,
     );
   });
+
+task(
+  TASK_COMPILE_SOLIDITY_GET_SOURCE_PATHS,
+  async (_, { config }, runSuper) => {
+    const path = await import("path");
+    const { glob } = await import("glob");
+
+    const target = await getTarget(config);
+    const noirPaths = await glob(path.join(target, "*.sol"));
+
+    const paths = await runSuper();
+    return [...paths, ...noirPaths];
+  },
+);
 
 async function checkNargoWorkspace(config: HardhatConfig) {
   if (config.noir.skipNargoWorkspaceCheck) {

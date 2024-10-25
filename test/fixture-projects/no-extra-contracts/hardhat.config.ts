@@ -1,4 +1,5 @@
 // We load the plugin here.
+import "@nomicfoundation/hardhat-ethers";
 import { HardhatUserConfig } from "hardhat/types";
 
 import "../../../src/index";
@@ -15,9 +16,6 @@ const config: HardhatUserConfig = {
     },
   },
   defaultNetwork: "hardhat",
-  paths: {
-    noir: "noir2",
-  },
   noir: {
     version: TEST_NOIR_VERSION,
   },
