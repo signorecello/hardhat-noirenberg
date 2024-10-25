@@ -1,3 +1,4 @@
+import { TASK_CLEAN } from "hardhat/builtin-tasks/task-names";
 import { resetHardhatContext } from "hardhat/plugins-testing";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import path from "path";
@@ -9,10 +10,11 @@ declare module "mocha" {
 }
 
 export function useEnvironment(fixtureProjectName: string) {
-  beforeEach("Loading hardhat environment", function () {
+  beforeEach("Loading hardhat environment", async function () {
     process.chdir(path.join(__dirname, "fixture-projects", fixtureProjectName));
 
     this.hre = require("hardhat");
+    await this.hre.run(TASK_CLEAN);
   });
 
   afterEach("Resetting hardhat", function () {
