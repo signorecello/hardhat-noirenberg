@@ -6,7 +6,10 @@ export const makeRunCommand = (cwd?: string) => async (command: string) => {
   const execAsync = promisify(exec);
   // TODO(security): escape command arguments (use template strings)
   try {
-    const { stdout, stderr } = await execAsync(command, { cwd });
+    const { stdout, stderr } = await execAsync(command, {
+      cwd,
+      maxBuffer: Infinity,
+    });
     if (stdout) {
       console.log(stdout);
     }
