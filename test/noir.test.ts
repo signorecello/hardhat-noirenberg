@@ -21,14 +21,15 @@ describe("Integration tests examples", function () {
       start = performance.now();
       await this.hre.run(TASK_COMPILE);
       const coldCompileTime = performance.now() - start;
-      expect(coldCompileTime).to.be.gt(1000);
+      const COLD_COMPILE_THRESHOLD = 600;
+      expect(coldCompileTime).to.be.gt(COLD_COMPILE_THRESHOLD);
 
       start = performance.now();
       await this.hre.run(TASK_COMPILE);
       const warmCompileTime = performance.now() - start;
       console.log("cold", coldCompileTime);
       console.log("warm", warmCompileTime);
-      expect(warmCompileTime).to.be.lt(1000);
+      expect(warmCompileTime).to.be.lt(COLD_COMPILE_THRESHOLD);
 
       const { circuit } = await this.hre.noir.getCircuit("my_circuit");
       expect(circuit.bytecode.length).to.be.gt(0);
