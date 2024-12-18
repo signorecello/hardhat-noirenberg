@@ -8,11 +8,10 @@
     "outDir": "./dist",
     "strict": true,
     "rootDirs": ["./src", "./test"],
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "types": []
   },
-  "exclude": ["dist", "node_modules"],
-  "include": [
-    "./test",
-    "./src"
-  ]
+  "exclude": ["dist", "node_modules", "**/node_modules/*"],
+  "include": ["./test", "./src"]
 }

@@ -3,7 +3,7 @@
 // To extend one of Hardhat's types, you need to import the module where it has been defined, and redeclare it.
 import "hardhat/types/config";
 import "hardhat/types/runtime";
-import { NoirExtension } from "./Noir";
+import { Noirenberg } from "./noirenberg";
 
 declare module "hardhat/types/config" {
   // This is an example of an extension to one of the Hardhat config values.
@@ -24,24 +24,12 @@ declare module "hardhat/types/config" {
   export interface ProjectPathsConfig {
     noir: string;
   }
-
-  export interface HardhatUserConfig {
-    noir: {
-      version: string;
-      bbVersion?: string;
-      skipNargoWorkspaceCheck?: boolean;
-    };
-  }
-
-  export interface HardhatConfig {
-    noir: NonNullable<Required<HardhatUserConfig["noir"]>>;
-  }
 }
 
 declare module "hardhat/types/runtime" {
   // This is an example of an extension to the Hardhat Runtime Environment.
   // This new field will be available in tasks' actions, scripts, and tests.
   export interface HardhatRuntimeEnvironment {
-    noir: NoirExtension;
+    noirenberg: Promise<Noirenberg>;
   }
 }

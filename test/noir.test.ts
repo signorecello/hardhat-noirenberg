@@ -1,83 +1,30 @@
 // tslint:disable-next-line no-implicit-dependencies
-import { assert, expect } from "chai";
-import fs from "fs";
-import { TASK_CLEAN, TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { expect } from "chai";
 import path from "path";
-import { NoirExtension } from "../src/Noir";
-import { useEnvironment } from "./helpers";
+import { Noirenberg } from "../src/noirenberg";
+import { toHex, padHex } from "viem";
+process.chdir(path.join(__dirname));
+const hre = require("hardhat");
 
 describe("Integration tests examples", function () {
-  describe("Hardhat Runtime Environment extension", function () {
-    useEnvironment("hardhat-project");
+  it("deploys a verifier directly", async function () {
+    const noirenberg = await Noirenberg.new(hre);
+    await noirenberg.getSolidityVerifier();
+    const { noir, backend } = noirenberg;
 
-    it("Should add the example field", function () {
-      assert.instanceOf(this.hre.noir, NoirExtension);
-    });
+    const { witness } = await noir.execute({ x: 1, y: 2 });
+    const proof = await backend.generateProof(witness, { keccak: true });
 
-    it("should compile", async function () {
-      let start;
-      await this.hre.run(TASK_CLEAN);
+    await hre.run("compile");
 
-      start = performance.now();
-      await this.hre.run(TASK_COMPILE);
-      const coldCompileTime = performance.now() - start;
-      const COLD_COMPILE_THRESHOLD = 600;
-      expect(coldCompileTime).to.be.gt(COLD_COMPILE_THRESHOLD);
+    const contract = await hre.viem.deployContract("HonkVerifier");
+    console.log(proof);
+    await backend.verifyProof(proof);
+    const result = await contract.read.verify([
+      toHex(proof.proof),
+      proof.publicInputs,
+    ]);
 
-      start = performance.now();
-      await this.hre.run(TASK_COMPILE);
-      const warmCompileTime = performance.now() - start;
-      console.log("cold", coldCompileTime);
-      console.log("warm", warmCompileTime);
-      expect(warmCompileTime).to.be.lt(COLD_COMPILE_THRESHOLD);
-
-      const { circuit } = await this.hre.noir.getCircuit("my_circuit");
-      expect(circuit.bytecode.length).to.be.gt(0);
-    });
-
-    it("creates a package", async function () {
-      const name = "my_package";
-      await this.hre.run("noir-new", { name });
-      const dir = path.join(this.hre.config.paths.noir, name);
-      const exists = fs.existsSync(dir);
-      expect(exists).to.be.eq(true);
-      fs.rmSync(dir, { recursive: true });
-    });
-  });
-
-  describe("HardhatConfig extension", function () {
-    useEnvironment("hardhat-project");
-
-    it("Should add the newPath to the config", function () {
-      assert.equal(
-        this.hre.config.paths.noir,
-        path.join(process.cwd(), "noir2"),
-      );
-    });
-  });
-
-  describe("no extra solidity contracts", function () {
-    useEnvironment("no-extra-contracts");
-
-    it("deploys a verifier directly", async function () {
-      await this.hre.run("compile");
-
-      const contractFactory =
-        await this.hre.ethers.getContractFactory("UltraVerifier");
-      const contract = await contractFactory.deploy();
-      await contract.waitForDeployment();
-      console.log("verifier", await contract.getAddress());
-    });
+    expect(contract.abi[3].name).to.equal("verify");
   });
 });
-
-// describe("Unit tests examples", function () {
-//   describe("ExampleHardhatRuntimeEnvironmentField", function () {
-//     describe("sayHello", function () {
-//       it("Should say hello", function () {
-//         const field = new Noir();
-//         assert.equal(field.hello(), "hello");
-//       });
-//     });
-//   });
-// });

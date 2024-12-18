@@ -1,12 +1,13 @@
 // We load the plugin here.
 import { HardhatUserConfig } from "hardhat/types";
+import "@nomicfoundation/hardhat-toolbox-viem";
+import "@nomicfoundation/hardhat-viem";
 
-import "../../../src/index";
-import { TEST_NOIR_VERSION } from "../noir-version";
+import "../src/index";
 
 const config: HardhatUserConfig = {
   solidity: {
-    version: "0.8.27",
+    version: "0.8.28",
     settings: {
       optimizer: {
         enabled: true,
@@ -15,12 +16,6 @@ const config: HardhatUserConfig = {
     },
   },
   defaultNetwork: "hardhat",
-  paths: {
-    noir: "noir2",
-  },
-  noir: {
-    version: TEST_NOIR_VERSION,
-  },
 };
 
 export default config;

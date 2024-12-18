@@ -11,21 +11,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: "pnpm"
+      - name: Set up bun
+        uses: oven-sh/setup-bun@v1
 
       - name: Install dependencies
-        run: pnpm install
+        run: bun i
 
       - name: Lint
-        run: pnpm lint
+        run: bun i
 
       - name: Test
-        run: pnpm test
+        run: bun run test

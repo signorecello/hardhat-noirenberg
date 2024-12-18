@@ -1,36 +1,32 @@
 <img align="right" width="150" height="150" top="100" src="./assets/banner.jpg">
 
-# Hardhat Noir
+# Hardhat Noirenberg
 
-Develop [Noir](https://noir-lang.org) with [Hardhat](https://hardhat.org) without hassle.
+Develop [Noir](https://noir-lang.org) projects with the [Barretenberg](https://github.com/AztecProtocol/aztec-packages/tree/master/barretenberg/ts) proving backend within a [Hardhat](https://hardhat.org) project without hassle.
 
-## What
+> [!INFO]
+> This is a fork of @olehmisar's amazing [hardhat-noir plugin](https://github.com/olehmisar/hardhat-noir) that features a full JS experience interacting with Noir. It's also pretty minimal. If you're looking for a plugin that gives you Nargo workspaces support, CLI tooling installation, `init` commands, and other features, check out Oleh's project!
 
-Write programs in Noir, generate Solidity verifiers and run tests.
+## What is this
 
-This plugin automatically manages `nargo` and `bb` versions and compiles Noir on demand.
+Write programs in Noir, generate Solidity verifiers with Barretenberg, and deploy them with Hardhat.
 
 ## Installation
 
-Install the plugin and Noir dependencies:
+Within your hardhat project, install the plugin:
 
 ```bash
-npm install hardhat-plugin-noir @noir-lang/noir_js @noir-lang/backend_barretenberg
+npm install hardhat-noirenberg
 ```
 
-Import the plugin in your `hardhat.config.js`:
+Import it your `hardhat.config.js`:
 
 ```js
-require("hardhat-plugin-noir");
+require("hardhat-noirenberg"); // for cjs, or
+import "hardhat-noirenberg"; // for esm
 ```
 
-Or if you are using TypeScript, in your `hardhat.config.ts`:
-
-```ts
-import "hardhat-plugin-noir";
-```
-
-Specify the Noir version in your Hardhat config:
+Specify the Solidity configuration:
 
 **You must enable Solidity optimizer in order to be able to deploy Solidity verifier contracts.**
 
@@ -41,22 +37,19 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 100000000,
+        runs: 200,
       },
     },
-  },
-  noir: {
-    version: "0.39.0",
   }
 };
 ```
 
-## Usage
+## Prerequisites
 
-To get started, create a Noir circuit in `noir` folder:
+To get started, create a Noir circuit in `noir` folder. For example, if you're using [nargo](https://noir-lang.org/docs/getting_started/noir_installation):
 
 ```bash
-npx hardhat noir-new my_noir
+nargo init .
 ```
 
 It will create `noir/my_noir` folder with the following `src/main.nr`:
@@ -67,98 +60,39 @@ fn main(x: Field, y: pub Field) {
 }
 ```
 
-This circuit will prove that the private input `x` is not equal to the public input `y` using a zero-knowledge proof.
+## Usage
 
-Compile Noir(it will also generate a Solidity verifier):
-
-```bash
-npx hardhat compile
-```
-
-Use the verifier contract in Solidity:
-
-```solidity
-// contracts/MyContract.sol
-import {UltraVerifier} from "../noir/target/my_noir.sol";
-
-contract MyContract {
-    UltraVerifier public verifier = new UltraVerifier();
-
-    function verify(bytes calldata proof, uint256 y) external view returns (bool) {
-        bytes32[] memory publicInputs = new bytes32[](1);
-        publicInputs[0] = bytes32(y);
-        bool result = verifier.verify(proof, publicInputs);
-        return result;
-    }
-}
-```
-
-Generate a proof in TypeScript and verify it on chain:
+In your hardhat project, import and instantiate Noirenberg with the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment):
 
 ```js
-// test/MyContract.test.ts
-import { expect } from "chai";
-import hre, { ethers } from "hardhat";
-
-it("proves and verifies on-chain", async () => {
-  // Deploy a verifier contract
-  const contractFactory = await ethers.getContractFactory("MyContract");
-  const contract = await contractFactory.deploy();
-  await contract.waitForDeployment();
-
-  // Generate a proof
-  const { noir, backend } = await hre.noir.getCircuit("my_noir");
-  const input = { x: 1, y: 2 };
-  const { witness } = await noir.execute(input);
-  const { proof, publicInputs } = await backend.generateProof(witness);
-  // it matches because we marked y as `pub` in `main.nr`
-  expect(BigInt(publicInputs[0])).to.eq(BigInt(input.y));
-
-  // Verify the proof on-chain
-  const result = await contract.verify(proof, input.y);
-  expect(result).to.eq(true);
-
-  // You can also verify in JavaScript.
-  const resultJs = await backend.verifyProof({
-    proof,
-    publicInputs: [String(input.y)],
-  });
-  expect(resultJs).to.eq(true);
-});
+import { Noirenberg } from "hardhat-noirenberg";
+const noirenberg = await Noirenberg.new(this.hre);
 ```
 
-## Tasks
+Your instance `noirenberg` now has compatible versions of `NoirJS` and `BB.JS`. Check their reference documentation [here](https://noir-lang.org/docs/reference/NoirJS/noir_js/) and [here](https://github.com/AztecProtocol/aztec-packages/tree/master/barretenberg/ts).
 
-This plugin creates no additional tasks. Run `hardhat compile` to compile Noir.
+We're now ready to generate proofs. For example:
 
-<!-- This plugin adds the _example_ task to Hardhat:
+```js
+  const noirenberg = await Noirenberg.new(this.hre);
+  const { noir, backend } = noirenberg;
 
+  const { witness } = await noir.execute({ x: 1, y: 2 });
+  const proof = await backend.generateProof(witness);
 ```
-output of `npx hardhat help example`
-``` -->
+
+Generate a Solidity verifier in the default hardhat `sources` folder:
+
+```js
+  const noirenberg = await Noirenberg.new(this.hre);
+  await noirenberg.getSolidityVerifier()
+```
 
 ## Environment extensions
 
-This plugin extends the Hardhat Runtime Environment by adding a `noir` field.
+This plugin extends the Hardhat Runtime Environment by adding a `noir` field, and defines the path where your Noir project is. It defaults to a folder called `noir` at the root of the hardhat project.
 
-You can call `hre.noir.getCircuit(name)` to get a compiled circuit JSON.
-
-## Configuration
-
-Configure Noir and Barretenberg (bb) versions in `hardhat.config.ts`:
-
-```js
-export default {
-  noir: {
-    // Noir version, optional, will use the latest known Noir version by default
-    version: "0.39.0",
-    // bb version, optional, will be inferred if possible
-    bbVersion: "0.63.0",
-  },
-};
-```
-
-The default folder where Noir is located is `noir`. You can change it in `hardhat.config.js`:
+For example, if you prefer to make it named `circuits`:
 
 ```js
 export default {
@@ -167,3 +101,7 @@ export default {
   },
 };
 ```
+
+## Examples
+
+Refer to the test suite for an E2E example of a hardhat project using Noirenberg.

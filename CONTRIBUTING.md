@@ -14,10 +14,10 @@ many more features:
 
 ## Installation
 
-To start working on your project, just run
+To start working on your project, install `bun` and run:
 
 ```bash
-npm install
+bun i
 ```
 
 ## Plugin development
@@ -26,7 +26,7 @@ Make sure to read our [Plugin Development Guide](https://hardhat.org/advanced/bu
 
 ## Testing
 
-Running `npm run test` will run every test located in the `test/` folder. They
+Running `bun run test` will run every test located in the `test/` folder. They
 use [mocha](https://mochajs.org) and [chai](https://www.chaijs.com/),
 but you can customize them.
 
@@ -38,12 +38,12 @@ the interaction of the plugin with Hardhat and its dependencies.
 All of Hardhat projects use [prettier](https://prettier.io/) and
 [tslint](https://palantir.github.io/tslint/).
 
-You can check if your code style is correct by running `npm run lint`, and fix
+You can check if your code style is correct by running `bun run lint`, and fix
 it with `npm run lint:fix`.
 
 ## Building the project
 
-Just run `npm run build` ️👷
+Just run `bun run build` ️👷
 
 ## README file
 

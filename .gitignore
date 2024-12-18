@@ -66,3 +66,5 @@ cache
 target
 artifacts
 .vscode
+contracts
+node_modules
