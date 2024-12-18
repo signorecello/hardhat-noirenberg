@@ -4,6 +4,7 @@ import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import path from "path";
 import { Noirenberg } from "./noirenberg";
 import "./type-extensions";
+import "./tasks";
 
 extendConfig(
   async (config: HardhatConfig, userConfig: Readonly<HardhatUserConfig>) => {

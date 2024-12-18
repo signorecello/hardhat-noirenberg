@@ -1,6 +1,6 @@
 {
   "name": "hardhat-noirenberg",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Hardhat plugin for Noir + Barretenberg projects",
   "repository": "github:olehmisar/hardhat-noir",
   "author": "Oleh Misarosh <olehmisar@gmail.com>, Pedro Sousa <outgoing@zkpedro.dev>",
