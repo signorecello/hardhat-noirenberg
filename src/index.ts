@@ -42,5 +42,5 @@ extendEnvironment((hre) => {
   // We add a field to the Hardhat Runtime Environment here.
   // We use lazyObject to avoid initializing things until they are actually
   // needed.
-  hre.noirenberg = lazyObject(async () => await Noirenberg.new(hre));
+  hre.noirenberg = lazyObject(() => new Noirenberg(hre.config.paths));
 });

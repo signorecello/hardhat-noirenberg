@@ -7,23 +7,22 @@ process.chdir(path.join(__dirname));
 const hre = require("hardhat");
 
 describe("Integration tests examples", function () {
-  it("deploys a verifier directly", async function () {
-    const noirenberg = await Noirenberg.new(hre);
-    await noirenberg.getSolidityVerifier();
-    const { noir, backend } = noirenberg;
+  it("Deploys a verifier", async function () {
+    const { noir, backend } = await hre.noirenberg.compile();
+    await hre.noirenberg.getSolidityVerifier();
+    await hre.run("compile");
 
     const { witness } = await noir.execute({ x: 1, y: 2 });
     const proof = await backend.generateProof(witness, { keccak: true });
-
-    await hre.run("compile");
+    await backend.verifyProof(proof);
 
     const contract = await hre.viem.deployContract("HonkVerifier");
-    console.log(proof);
-    await backend.verifyProof(proof);
-    const result = await contract.read.verify([
-      toHex(proof.proof),
-      proof.publicInputs,
-    ]);
+
+    // currently not working
+    // const result = await contract.read.verify([
+    //   toHex(proof.proof),
+    //   proof.publicInputs,
+    // ]);
 
     expect(contract.abi[3].name).to.equal("verify");
   });

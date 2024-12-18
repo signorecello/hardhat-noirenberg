@@ -62,21 +62,12 @@ fn main(x: Field, y: pub Field) {
 
 ## Usage
 
-In your hardhat project, import and instantiate Noirenberg with the [Hardhat Runtime Environment](https://hardhat.org/hardhat-runner/docs/advanced/hardhat-runtime-environment):
-
-```js
-import { Noirenberg } from "hardhat-noirenberg";
-const noirenberg = await Noirenberg.new(this.hre);
-```
-
 Your instance `noirenberg` now has compatible versions of `NoirJS` and `BB.JS`. Check their reference documentation [here](https://noir-lang.org/docs/reference/NoirJS/noir_js/) and [here](https://github.com/AztecProtocol/aztec-packages/tree/master/barretenberg/ts).
 
-We're now ready to generate proofs. For example:
+We're now ready to generate proofs. For example, in a hardhat test file or script:
 
 ```js
-  const noirenberg = await Noirenberg.new(this.hre);
-  const { noir, backend } = noirenberg;
-
+  const { noir, backend } = await hre.noirenberg.compile();
   const { witness } = await noir.execute({ x: 1, y: 2 });
   const proof = await backend.generateProof(witness);
 ```
@@ -84,8 +75,7 @@ We're now ready to generate proofs. For example:
 Generate a Solidity verifier in the default hardhat `sources` folder:
 
 ```js
-  const noirenberg = await Noirenberg.new(this.hre);
-  await noirenberg.getSolidityVerifier()
+  await hre.noirenberg.getSolidityVerifier();
 ```
 
 ## Environment extensions
