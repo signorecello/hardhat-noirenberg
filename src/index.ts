@@ -3,6 +3,7 @@ import { lazyObject } from "hardhat/plugins";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
 import path from "path";
 import { Noirenberg } from "./noirenberg";
+import { ProvingSystem } from "./type-extensions";
 import "./type-extensions";
 import "./tasks";
 
@@ -36,6 +37,9 @@ extendConfig(
     }
 
     config.paths.noir = noirPath;
+    config.noirenberg = userConfig.noirenberg || {
+      provingSystem: ProvingSystem.UltraPlonk,
+    };
   },
 );
 
@@ -43,5 +47,7 @@ extendEnvironment((hre) => {
   // We add a field to the Hardhat Runtime Environment here.
   // We use lazyObject to avoid initializing things until they are actually
   // needed.
-  hre.noirenberg = lazyObject(() => new Noirenberg(hre.config.paths));
+  hre.noirenberg = lazyObject(
+    () => new Noirenberg(hre.config.paths, hre.config.noirenberg),
+  );
 });

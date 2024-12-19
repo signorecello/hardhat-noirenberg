@@ -1,26 +1,41 @@
 import { mkdirSync, writeFileSync } from "fs";
 import path from "path";
 import { CompiledCircuit } from "@noir-lang/noir_js";
-import { HardhatRuntimeEnvironment, ProjectPathsConfig } from "hardhat/types";
+import {
+  HardhatRuntimeEnvironment,
+  HardhatUserConfig,
+  ProjectPathsConfig,
+} from "hardhat/types";
 import { RawBuffer } from "@aztec/bb.js";
-import type { UltraHonkBackend as UltraHonkBackendType } from "@aztec/bb.js";
+import type {
+  UltraHonkBackend as UltraHonkBackendType,
+  UltraPlonkBackend as UltraPlonkBackendType,
+} from "@aztec/bb.js";
 
 import { compile, createFileManager } from "@noir-lang/noir_wasm";
 import { resolve } from "path";
 import { Noir } from "@noir-lang/noir_js";
-import { UltraHonkBackend } from "@aztec/bb.js";
-
+import { ProvingSystem } from "./type-extensions";
 export class Noirenberg {
   noir: Noir | undefined;
-  backend: UltraHonkBackendType | undefined;
+  backend: UltraHonkBackendType | UltraPlonkBackendType | undefined;
 
-  constructor(private paths: ProjectPathsConfig) {}
+  constructor(
+    private paths: ProjectPathsConfig,
+    private noirenberg: HardhatUserConfig["noirenberg"],
+  ) {}
 
   async compile() {
     const circuit = await this.compileCircuit(this.paths.noir);
 
     this.noir = new Noir(circuit);
-    this.backend = new UltraHonkBackend(circuit.bytecode);
+    if (this.noirenberg?.provingSystem == ProvingSystem.UltraPlonk) {
+      const { UltraPlonkBackend } = await import("@aztec/bb.js");
+      this.backend = new UltraPlonkBackend(circuit.bytecode);
+    } else {
+      const { UltraHonkBackend } = await import("@aztec/bb.js");
+      this.backend = new UltraHonkBackend(circuit.bytecode);
+    }
     return { noir: this.noir, backend: this.backend };
   }
 
@@ -59,9 +74,17 @@ export class Noirenberg {
     mkdirSync(path.resolve(this.paths.sources), {
       recursive: true,
     });
-    writeFileSync(
-      path.resolve(this.paths.sources, "HonkVerifier.sol"),
-      contract,
-    );
+
+    if (this.noirenberg?.provingSystem == ProvingSystem.UltraPlonk) {
+      writeFileSync(
+        path.resolve(this.paths.sources, "UltraVerifier.sol"),
+        contract,
+      );
+    } else {
+      writeFileSync(
+        path.resolve(this.paths.sources, "HonkVerifier.sol"),
+        contract,
+      );
+    }
   }
 }

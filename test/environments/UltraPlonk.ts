@@ -4,7 +4,7 @@ import "../src/index";
 
 export default {
   solidity: {
-    version: "0.8.28",
+    version: "0.8.4",
     settings: {
       optimizer: {
         enabled: true,
@@ -13,4 +13,7 @@ export default {
     },
   },
   defaultNetwork: "hardhat",
+  noirenberg: {
+    provingSystem: "UltraPlonk",
+  },
 };

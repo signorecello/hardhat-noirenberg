@@ -13,4 +13,7 @@ export default {
     },
   },
   defaultNetwork: "hardhat",
+  noirenberg: {
+    provingSystem: "UltraHonk",
+  },
 };

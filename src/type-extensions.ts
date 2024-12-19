@@ -4,6 +4,10 @@
 import "hardhat/types/config";
 import "hardhat/types/runtime";
 import { Noirenberg } from "./noirenberg";
+export enum ProvingSystem {
+  UltraPlonk = "UltraPlonk",
+  UltraHonk = "UltraHonk",
+}
 
 declare module "hardhat/types/config" {
   // This is an example of an extension to one of the Hardhat config values.
@@ -23,6 +27,16 @@ declare module "hardhat/types/config" {
   // function.
   export interface ProjectPathsConfig {
     noir: string;
+  }
+
+  export interface HardhatUserConfig {
+    noirenberg?: {
+      provingSystem: ProvingSystem;
+    };
+  }
+
+  export interface HardhatConfig {
+    noirenberg?: NonNullable<Required<HardhatUserConfig["noirenberg"]>>;
   }
 }
 

@@ -78,6 +78,23 @@ Generate a Solidity verifier in the default hardhat `sources` folder:
   await hre.noirenberg.getSolidityVerifier();
 ```
 
+## Configuration
+
+You can choose between Barretenberg's `UltraPlonk` and `UltraHonk` proving systems. It defaults to UltraPlonk, but you can configure any of the two in the `hardhat.config` file like so:
+
+```js
+export default {
+  // ... your config
+  noirenberg: {
+    provingSystem: "UltraHonk"
+  }
+}
+```
+
+> [!IMPORTANT]
+> `UltraHonk` verifier contracts the proof challenge to be generated with `keccak` hashes instead of `poseidon`.
+> This means you need to specifically tell the backend to use keccak when generating proofs: `backend.generateProof(witness, { keccak: true })`
+
 ## Environment extensions
 
 This plugin extends the Hardhat Runtime Environment by adding a `noir` field, and defines the path where your Noir project is. It defaults to a folder called `noir` at the root of the hardhat project.

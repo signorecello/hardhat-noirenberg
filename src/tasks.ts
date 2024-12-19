@@ -1,5 +1,6 @@
 import { task } from "hardhat/config";
 import { TASK_COMPILE } from "hardhat/builtin-tasks/task-names";
+import { resolve } from "path";
 
 task(TASK_COMPILE, "Compile and generate circuits and contracts").setAction(
   async (args, hre, runSuper) => {
